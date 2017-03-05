@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>tracking.js - color with camera</title>
+
+		<script src="js/tracking.js"></script>
+		<script src="js/color_tracker.js"></script>
+		<style>
+video, canvas {
+	margin-left: 100px;
+	margin-top: 35px;
+	position: absolute;
+}
+		</style>
+	</head>
+	<body>
+		<div class="demo-title">
+			Make changes in the code to track a custom color
+		</div>
+
+		<div class="demo-frame">
+			<div class="demo-container">
+				<video id="video" width="600" height="450" preload autoplay loop muted controls></video>
+				<canvas id="canvas" width="600" height="450"></canvas>
+			</div>
+		</div>
+
+		<script>
+window.onload = function() {
+	var video = document.getElementById("video");
+	var canvas = document.getElementById("canvas");
+	var context = canvas.getContext("2d");
+
+	//change the numbers below to correspond to the color you want to track
+	tracking.ColorTracker.registerColor("cup:red", function(r, g, b) {
+		// console.log(r,g,b)
+		var threshold = 
+			dx = r - 150,
+		dy = g - 50,
+		dz = b - 50;
+
+		return dx * dx + dy * dy + dz * dz < 10000; //make this number larger to match more co]ors
+	});
+	tracking.ColorTracker.registerColor("cup:green", function(r, g, b) {
+		// console.log(r,g,b)
+		var threshold = 
+			dx = r - 50,
+		dy = g - 120,
+		dz = b - 100;
+
+		return dx * dx + dy * dy + dz * dz < 10000; //make this number larger to match more co]ors
+	});
+	//Tracks the basic colors and the custom color
+	var tracker = new tracking.ColorTracker(["cup:red", "cup:green"]);
+	//Use this instead of the above if you just want to track the custom color
+	//var tracker = new tracking.ColorTracker("custom");
+
+	tracking.track("#video", tracker, { camera: true });
+
+	tracker.on("track", function(event) {
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		var greenPos = [];
+		var redPos = [];
+		event.data.forEach(function(rect) {
+			if (rect.color === "cup:red") {
+				rect.color = "#FF0000";
+				redPos.push(rect.x);
+			} else if (rect.color === "cup:green") {
+				rect.color = "#00FF00";
+				greenPos.push(rect.x);
+			}
+
+			context.strokeStyle = rect.color;
+			context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+			context.font = "11px Helvetica";
+			context.fillStyle = rect.color;
+			context.fillText("x: " + rect.x + "px", rect.x + rect.width + 5, rect.y + 11);
+			context.fillText("y: " + rect.y + "px", rect.x + rect.width + 5, rect.y + 22);
+		});
+
+		if (greenPos.length === 0 && redPos.length !== 0) {
+			console.log('only red items found');
+			return;
+		} else if (redPos.length === 0 && greenPos.length !== 0) {
+			console.log('only green items found');
+			return;
+		}
+		var greenAvgPos = greenPos.length && greenPos.reduce((pos, x) => pos + x, 0) / greenPos.length;
+		var redAvgPos = redPos.length && redPos.reduce((pos, x) => pos + x, 0) / redPos.length;
+
+		console.log('green', greenPos, greenAvgPos);
+		console.log('red', redPos, redAvgPos);
+		if (greenAvgPos < redAvgPos) {
+			console.log('green left, red right');
+		} else {
+			console.log('red left, green right');
+		}
+	});
+
+	//initGUIControllers(tracker);
+};
+		</script>
+
+	</body>
+</html>

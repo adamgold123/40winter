@@ -1,0 +1,46 @@
+<html>
+<body>
+<div>Click to get pixel color</div>
+<div>r: <span id="r">...</span>g: <span id="g">...</span>b: <span id="b">...</span></div>
+<canvas id="myCanvas" width="400" height="400" style="border:1px solid #c3c3c3;">
+Your browser does not support the canvas element.
+</canvas>
+<script src="https://seattleacademy.software/js/jquery-3.0.0.min.js"></script>
+<script type="text/javascript">
+    window.onload = function(){
+        console.log('drone')
+        var canvas = document.getElementById('myCanvas');
+        var context = canvas.getContext('2d');
+        var img = new Image();
+        img.src = 'drone.jpg';
+        context.drawImage(img, 0, 0);
+    };
+
+    function findPos(obj){
+    var current_left = 0, current_top = 0;
+    if (obj.offsetParent){
+        do{
+            current_left += obj.offsetLeft;
+            current_top += obj.offsetTop;
+        }while(obj = obj.offsetParent);
+        return {x: current_left, y: current_top};
+    }
+    return undefined;
+    }
+
+$('#myCanvas').click(function(e){
+    var position = findPos(this);
+    var x = e.pageX - position.x;
+    var y = e.pageY - position.y;
+    var coordinate = "x=" + x + ", y=" + y;
+    var canvas = this.getContext('2d');
+    var p = canvas.getImageData(x, y, 1, 1).data;
+    $("#r").text(p[0]);
+    $("#g").text(p[1]);
+    $("#b").text(p[2]);
+});
+</script>
+<img src="drone.jpg"/>
+
+</body>
+</html>
